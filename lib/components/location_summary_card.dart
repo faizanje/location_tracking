@@ -9,10 +9,11 @@ class LocationSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Format duration as hours and minutes
+    // Format duration as hours, minutes and seconds
     final hours = summary.timeSpent.inHours;
     final minutes = summary.timeSpent.inMinutes % 60;
-    final timeString = '$hours h $minutes min';
+    final seconds = summary.timeSpent.inSeconds % 60;
+    final timeString = '$hours h $minutes min $seconds sec';
 
     return Card(
       elevation: 4,

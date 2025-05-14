@@ -50,7 +50,11 @@ class DatabaseHelper {
   // Location Records CRUD operations
   Future<int> insertLocationRecord(LocationRecord record) async {
     Database db = await database;
-    return await db.insert('location_records', record.toMap());
+    int id = await db.insert('location_records', record.toMap());
+    print(
+      'DATABASE: Inserted location record with ID $id: ${record.location.latitude}, ${record.location.longitude}, ${record.timestamp}, ${record.locationName ?? "No location name"}',
+    );
+    return id;
   }
 
   Future<List<LocationRecord>> getLocationRecords() async {

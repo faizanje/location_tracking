@@ -43,6 +43,7 @@ class Geofence {
       center,
       point,
     );
+    print("Distance from center: $calculatedDistance meters");
     return calculatedDistance <= radius;
   }
 }

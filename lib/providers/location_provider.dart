@@ -18,8 +18,11 @@ class LocationProvider with ChangeNotifier {
 
   // Getters
   bool get isTracking => _isTracking;
+
   List<LocationRecord> get locationRecords => _locationRecords;
+
   List<Geofence> get geofences => _geofences;
+
   LatLng? get currentLocation => _currentLocation;
 
   // Initialize the provider
@@ -49,6 +52,12 @@ class LocationProvider with ChangeNotifier {
       print('Error getting current location: $e');
     }
 
+    // Listen for location updates
+    _locationService.locationUpdates.listen((location) {
+      _currentLocation = location;
+      notifyListeners();
+    });
+
     notifyListeners();
   }
 
@@ -64,6 +73,43 @@ class LocationProvider with ChangeNotifier {
     await _locationService.stopTracking();
     _isTracking = false;
     notifyListeners();
+  }
+
+  // Get current location
+  Future<LatLng?> getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      notifyListeners();
+      return _currentLocation;
+    } catch (e) {
+      print('Error getting current location: $e');
+      return null;
+    }
+  }
+
+  // Add geofence at current location
+  Future<bool> addGeofenceAtCurrentLocation(
+    String name, {
+    String? description,
+    double radius = 50.0,
+  }) async {
+    final currentLocation = await getCurrentLocation();
+    if (currentLocation == null) {
+      return false;
+    }
+
+    final geofence = Geofence(
+      name: name,
+      center: currentLocation,
+      radius: radius,
+      description: description,
+    );
+
+    await addGeofence(geofence);
+    return true;
   }
 
   // Get location records for a specific day
@@ -149,25 +195,19 @@ class LocationProvider with ChangeNotifier {
 
   // Add sample geofences for testing
   Future<void> _addSampleGeofences() async {
-    // Sample locations - replace these with real coordinates
+    // Sample locations as specified in requirements
     final geofences = [
       Geofence(
         name: 'Home',
-        center: LatLng(37.4220, -122.0840), // Example: Google HQ
+        center: LatLng(37.7749, -122.4194),
         radius: 50,
         description: 'Home Location',
       ),
       Geofence(
-        name: 'Work',
-        center: LatLng(37.7749, -122.4194), // Example: San Francisco
+        name: 'Office',
+        center: LatLng(37.7858, -122.4364),
         radius: 50,
-        description: 'Work Location',
-      ),
-      Geofence(
-        name: 'Gym',
-        center: LatLng(37.3352, -121.8811), // Example: San Jose
-        radius: 50,
-        description: 'Gym Location',
+        description: 'Office Location',
       ),
     ];
 

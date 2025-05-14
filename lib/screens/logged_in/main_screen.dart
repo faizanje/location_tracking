@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../components/clock_button.dart';
 import '../../providers/location_provider.dart';
 import 'summary_screen.dart';
+import 'geofence_screen.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -23,6 +24,15 @@ class MainScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SummaryScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.place),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const GeofenceScreen()),
               );
             },
           ),

@@ -56,12 +56,30 @@ class _SummaryScreenState extends State<SummaryScreen> {
     }
   }
 
+  // Calculate total time spent across all locations
+  Duration _getTotalTimeSpent() {
+    Duration total = Duration.zero;
+    for (var summary in _summaries) {
+      total += summary.timeSpent;
+    }
+    return total;
+  }
+
+  // Format duration as hours, minutes and seconds
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    final seconds = duration.inSeconds % 60;
+    return '$hours h $minutes min $seconds sec';
+  }
+
   @override
   Widget build(BuildContext context) {
     final formattedDate = DateFormat('EEEE, MMMM d, y').format(_selectedDate);
+    final totalTime = _getTotalTimeSpent();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Location Summary'), elevation: 0),
+      appBar: AppBar(title: const Text('Daily Location Summary'), elevation: 0),
       body: Column(
         children: [
           Container(
@@ -90,6 +108,38 @@ class _SummaryScreenState extends State<SummaryScreen> {
               ],
             ),
           ),
+          if (!_isLoading && _summaries.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Daily Total: ${_formatDuration(totalTime)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Time Distribution:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      // Progress indicators for locations
+                      ...buildLocationProgressBars(totalTime),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child:
                 _isLoading
@@ -126,5 +176,72 @@ class _SummaryScreenState extends State<SummaryScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> buildLocationProgressBars(Duration totalTime) {
+    // Sort summaries by time spent (descending)
+    final sortedSummaries = [..._summaries];
+    sortedSummaries.sort((a, b) => b.timeSpent.compareTo(a.timeSpent));
+
+    // Different colors for different locations
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.red,
+      Colors.teal,
+      Colors.indigo,
+      Colors.amber,
+      Colors.cyan,
+    ];
+
+    return sortedSummaries.asMap().entries.map((entry) {
+      final index = entry.key;
+      final summary = entry.value;
+      final percentage =
+          totalTime.inSeconds > 0
+              ? summary.timeSpent.inSeconds / totalTime.inSeconds
+              : 0.0;
+      final color = colors[index % colors.length];
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    summary.locationName,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  _formatDuration(summary.timeSpent),
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            LinearProgressIndicator(
+              value: percentage,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 10,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${(percentage * 100).toStringAsFixed(1)}%',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 }
