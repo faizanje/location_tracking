@@ -6,7 +6,6 @@ import '../models/location_summary.dart';
 import '../models/geofence.dart';
 import '../util/database_helper.dart';
 import '../util/location_service.dart';
-import 'package:flutter/foundation.dart';
 
 class LocationProvider with ChangeNotifier {
   final LocationService _locationService = LocationService();
@@ -16,9 +15,6 @@ class LocationProvider with ChangeNotifier {
   List<LocationRecord> _locationRecords = [];
   List<Geofence> _geofences = [];
   LatLng? _currentLocation;
-
-  // Simple value notifier for tracking state
-  final isTrackingNotifier = ValueNotifier<bool>(false);
 
   // Getters
   bool get isTracking => _isTracking;
@@ -36,7 +32,6 @@ class LocationProvider with ChangeNotifier {
 
     // Check if tracking is active
     _isTracking = await _locationService.isTracking();
-    isTrackingNotifier.value = _isTracking;
 
     // Load geofences
     _geofences = await _dbHelper.getGeofences();
@@ -70,7 +65,6 @@ class LocationProvider with ChangeNotifier {
   Future<void> startTracking() async {
     await _locationService.startTracking();
     _isTracking = true;
-    isTrackingNotifier.value = true;
     notifyListeners();
   }
 
@@ -78,7 +72,6 @@ class LocationProvider with ChangeNotifier {
   Future<void> stopTracking() async {
     await _locationService.stopTracking();
     _isTracking = false;
-    isTrackingNotifier.value = false;
     notifyListeners();
   }
 
